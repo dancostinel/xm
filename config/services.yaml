@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.input_file_path: '%env(INPUT_FILE_PATH)%'
+    app.filtered_file_path: '%env(OUTPUT_FILE_PATH)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +24,20 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+when@test:
+    parameters:
+        app.input_file_path: '%kernel.project_dir%/tests/fixtures/test_input_data.json'
+        app.filtered_file_path: '%kernel.project_dir%/tests/fixtures/test_output_data.csv'
+
+    services:
+        # override the service used to send emails in test environment
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        # Override file paths for tests
+        test.file_paths:
+            class: stdClass
+            public: true
+

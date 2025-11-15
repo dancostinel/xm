@@ -1,17 +1,17 @@
 services:
-    capslock-nginx-service:
+    xm-nginx-service:
         build:
             context: .
             dockerfile: ./nginx/Dockerfile
-        container_name: capslock-nginx-container
+        container_name: xm-nginx-container
         volumes:
-            - ./../:/var/www/capslock/
-        ports: ['6000:80']
-    capslock-php-service:
+            - ./../:/var/www/xm/
+        ports: ['7000:80']
+    xm-php-service:
         build:
             context: .
             dockerfile: ./php/Dockerfile
-        container_name: capslock-php-container
-        ports: ['6001:9000']
+        container_name: xm-php-container
+        ports: ['7001:9000']
         volumes:
-            - ./../:/var/www/capslock/
+            - ./../:/var/www/xm/
