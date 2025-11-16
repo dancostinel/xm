@@ -22,8 +22,6 @@ class HistoryQuotesDtoTest extends TestCase
             ->getValidator();
     }
 
-    // ========== Property Tests ==========
-
     public function testCompanySymbolPropertyCanBeSet(): void
     {
         $dto = new HistoryQuotesDto();
@@ -55,8 +53,6 @@ class HistoryQuotesDtoTest extends TestCase
 
         $this->assertEquals('test@example.com', $dto->email);
     }
-
-    // ========== Validation Tests - companySymbol ==========
 
     public function testValidCompanySymbol(): void
     {
@@ -106,7 +102,7 @@ class HistoryQuotesDtoTest extends TestCase
     public function testCompanySymbolMaxLength(): void
     {
         $dto = new HistoryQuotesDto();
-        $dto->companySymbol = 'TOOLONG'; // More than 4 characters
+        $dto->companySymbol = 'TOOLONG';
 
         $violations = $this->validator->validateProperty($dto, 'companySymbol');
 
@@ -146,8 +142,6 @@ class HistoryQuotesDtoTest extends TestCase
         $this->assertEquals('companySymbol field cannot be longer than 4 characters.', $violations[0]->getMessage());
         $this->assertEquals('The companySymbol field must contain only uppercase letters and numbers.', $violations[1]->getMessage());
     }
-
-    // ========== Validation Tests - startDate ==========
 
     public function testValidStartDate(): void
     {
@@ -203,8 +197,6 @@ class HistoryQuotesDtoTest extends TestCase
         $this->assertTrue($hasStartDateViolation);
     }
 
-    // ========== Validation Tests - endDate ==========
-
     public function testValidEndDate(): void
     {
         $dto = new HistoryQuotesDto();
@@ -259,8 +251,6 @@ class HistoryQuotesDtoTest extends TestCase
         $this->assertTrue($hasEndDateViolation);
     }
 
-    // ========== Validation Tests - email ==========
-
     public function testValidEmail(): void
     {
         $dto = new HistoryQuotesDto();
@@ -292,8 +282,6 @@ class HistoryQuotesDtoTest extends TestCase
         $this->assertCount(1, $violations);
         $this->assertEquals('The email field address is not valid.', $violations[0]->getMessage());
     }
-
-    // ========== Date Range Validation Tests ==========
 
     public function testStartDateCannotBeAfterEndDate(): void
     {
@@ -339,8 +327,6 @@ class HistoryQuotesDtoTest extends TestCase
         $this->assertFalse($hasDateRangeViolation);
     }
 
-    // ========== Full DTO Validation Tests ==========
-
     public function testValidDto(): void
     {
         $dto = new HistoryQuotesDto();
@@ -366,8 +352,6 @@ class HistoryQuotesDtoTest extends TestCase
 
         $this->assertGreaterThan(3, $violations->count());
     }
-
-    // ========== applyFilterConditions Tests ==========
 
     public function testApplyFilterConditionsMatchesSymbolAndDateRange(): void
     {
@@ -494,8 +478,6 @@ class HistoryQuotesDtoTest extends TestCase
         $this->assertEquals('Apple Inc.', $dto->getEmailSubject());
     }
 
-    // ========== Email Getter Tests ==========
-
     public function testGetEmailFrom(): void
     {
         $dto = new HistoryQuotesDto();
@@ -546,8 +528,6 @@ class HistoryQuotesDtoTest extends TestCase
 
         $this->assertEquals('history_quotes.csv', $dto->getEmailAttachmentName());
     }
-
-    // ========== Edge Cases ==========
 
     public function testApplyFilterConditionsWithArrayAccess(): void
     {
