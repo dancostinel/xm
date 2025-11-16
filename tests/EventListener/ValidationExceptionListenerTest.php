@@ -29,8 +29,6 @@ class ValidationExceptionListenerTest extends TestCase
         $this->kernel = $this->createMock(HttpKernelInterface::class);
     }
 
-    // ========== Helper Methods ==========
-
     private function createExceptionEvent(\Throwable $exception): ExceptionEvent
     {
         $request = new Request();
@@ -55,20 +53,15 @@ class ValidationExceptionListenerTest extends TestCase
         );
     }
 
-    // ========== Test UnprocessableEntityHttpException with ValidationFailedException ==========
-
     public function testHandlesUnprocessableEntityHttpExceptionWithValidationFailedException(): void
     {
-        // Create violation list
         $violations = new ConstraintViolationList([
             $this->createViolation('email', 'This value is not a valid email address.'),
             $this->createViolation('password', 'This value is too short.')
         ]);
 
-        // Create ValidationFailedException
         $validationException = new ValidationFailedException(null, $violations);
 
-        // Create UnprocessableEntityHttpException with ValidationFailedException as previous
         $httpException = new UnprocessableEntityHttpException(
             'Validation failed',
             $validationException
@@ -80,12 +73,10 @@ class ValidationExceptionListenerTest extends TestCase
         // Invoke listener
         ($this->listener)($event);
 
-        // Assert response was set
         $response = $event->getResponse();
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
 
-        // Assert response content
         $content = json_decode($response->getContent(), true);
         $this->assertFalse($content['success']);
         $this->assertEquals('Validation failed', $content['message']);
@@ -95,11 +86,8 @@ class ValidationExceptionListenerTest extends TestCase
         $this->assertEquals('This value is too short.', $content['errors']['password']);
     }
 
-    // ========== Test BadRequestHttpException with ValidationFailedException ==========
-
     public function testHandlesBadRequestHttpExceptionWithValidationFailedException(): void
     {
-        // Create violation list
         $violations = new ConstraintViolationList([
             $this->createViolation('username', 'This value should not be blank.')
         ]);
@@ -121,8 +109,6 @@ class ValidationExceptionListenerTest extends TestCase
         $this->assertArrayHasKey('username', $content['errors']);
         $this->assertEquals('This value should not be blank.', $content['errors']['username']);
     }
-
-    // ========== Test with Multiple Violations ==========
 
     public function testHandlesMultipleViolations(): void
     {
@@ -150,8 +136,6 @@ class ValidationExceptionListenerTest extends TestCase
         $this->assertArrayHasKey('name', $content['errors']);
     }
 
-    // ========== Test with Empty Violations ==========
-
     public function testHandlesEmptyViolationList(): void
     {
         $violations = new ConstraintViolationList([]);
@@ -171,18 +155,14 @@ class ValidationExceptionListenerTest extends TestCase
         $this->assertIsArray($content['errors']);
     }
 
-    // ========== Test Ignores Non-Validation Exceptions ==========
-
     public function testIgnoresUnprocessableEntityHttpExceptionWithoutValidationFailedException(): void
     {
-        // Create UnprocessableEntityHttpException without ValidationFailedException
         $httpException = new UnprocessableEntityHttpException('Some other error');
 
         $event = $this->createExceptionEvent($httpException);
 
         ($this->listener)($event);
 
-        // Assert no response was set
         $this->assertNull($event->getResponse());
     }
 
@@ -199,14 +179,12 @@ class ValidationExceptionListenerTest extends TestCase
 
     public function testIgnoresOtherHttpExceptions(): void
     {
-        // Create a different type of HTTP exception
         $httpException = new NotFoundHttpException('Not found');
 
         $event = $this->createExceptionEvent($httpException);
 
         ($this->listener)($event);
 
-        // Assert no response was set
         $this->assertNull($event->getResponse());
     }
 
@@ -223,7 +201,6 @@ class ValidationExceptionListenerTest extends TestCase
 
     public function testIgnoresExceptionWithDifferentPreviousException(): void
     {
-        // Create BadRequestHttpException with a different previous exception
         $previousException = new \InvalidArgumentException('Invalid argument');
         $httpException = new BadRequestHttpException('Bad request', $previousException);
 
@@ -233,8 +210,6 @@ class ValidationExceptionListenerTest extends TestCase
 
         $this->assertNull($event->getResponse());
     }
-
-    // ========== Test Response Format ==========
 
     public function testResponseHasCorrectStructure(): void
     {
@@ -252,13 +227,11 @@ class ValidationExceptionListenerTest extends TestCase
         $response = $event->getResponse();
         $content = json_decode($response->getContent(), true);
 
-        // Check all required fields are present
         $this->assertArrayHasKey('success', $content);
         $this->assertArrayHasKey('message', $content);
         $this->assertArrayHasKey('errors', $content);
         $this->assertArrayHasKey('timestamp', $content);
 
-        // Check data types
         $this->assertIsBool($content['success']);
         $this->assertIsString($content['message']);
         $this->assertIsArray($content['errors']);
@@ -319,7 +292,6 @@ class ValidationExceptionListenerTest extends TestCase
         $response = $event->getResponse();
         $content = json_decode($response->getContent(), true);
 
-        // Validate timestamp format (Y-m-d H:i:s)
         $this->assertMatchesRegularExpression(
             '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/',
             $content['timestamp']
@@ -329,8 +301,6 @@ class ValidationExceptionListenerTest extends TestCase
         $timestamp = \DateTime::createFromFormat('Y-m-d H:i:s', $content['timestamp']);
         $this->assertInstanceOf(\DateTime::class, $timestamp);
     }
-
-    // ========== Test Property Path Mapping ==========
 
     public function testViolationsAreMappedByPropertyPath(): void
     {
@@ -377,8 +347,6 @@ class ValidationExceptionListenerTest extends TestCase
         $this->assertArrayHasKey('', $content['errors']);
         $this->assertEquals('General error', $content['errors']['']);
     }
-
-    // ========== Test Edge Cases ==========
 
     public function testHandlesSamePropertyPathMultipleTimes(): void
     {
@@ -427,24 +395,18 @@ class ValidationExceptionListenerTest extends TestCase
         $this->assertStringContainsString('中文', $content['errors']['field3']);
     }
 
-    // ========== Test Invokable ==========
-
     public function testListenerIsInvokable(): void
     {
         $this->assertTrue(is_callable($this->listener));
         $this->assertTrue(method_exists($this->listener, '__invoke'));
     }
 
-    // ========== Test with Mock Objects ==========
-
     public function testWithMockedViolationList(): void
     {
-        // Create mock violation
         $violation = $this->createMock(ConstraintViolation::class);
         $violation->method('getPropertyPath')->willReturn('testField');
         $violation->method('getMessage')->willReturn('Test error message');
 
-        // Create violation list with mock
         $violations = new ConstraintViolationList([$violation]);
 
         $validationException = new ValidationFailedException(null, $violations);
@@ -465,12 +427,10 @@ class ValidationExceptionListenerTest extends TestCase
         $exception = new \RuntimeException('Some error');
         $event = $this->createExceptionEvent($exception);
 
-        // Get initial state
         $initialResponse = $event->getResponse();
 
         ($this->listener)($event);
 
-        // Response should still be null
         $this->assertNull($event->getResponse());
         $this->assertEquals($initialResponse, $event->getResponse());
     }
